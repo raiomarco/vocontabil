@@ -1,0 +1,52 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: dockerfile
+      args:
+        NEXT_PUBLIC_CLIENTVAR: ${NEXT_PUBLIC_CLIENTVAR}
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    image: t3-app
+    environment:
+      DATABASE_URL: ${DB_URL}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+    networks:
+      - vocontabil
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DB}
+      PGDATA: /data/postgres
+    volumes:
+      - db_data:/data/postgres
+    networks:
+      - vocontabil
+    ports:
+      - "5432:5432"
+
+  minio:
+    image: "bitnami/minio:latest"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+    volumes:
+      - storage_data:/data
+    networks:
+      - vocontabil
+
+networks:
+  vocontabil:
+    driver: bridge
+
+volumes:
+  db_data:
+    driver: local
+  storage_data:
+    driver: local
